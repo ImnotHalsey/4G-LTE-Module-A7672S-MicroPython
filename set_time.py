@@ -11,11 +11,16 @@ def send_at_command(command):
         response += uart.read(1)
     return response.decode('utf-8')
 
-def set_time_using_ntp():
-    # Enable NTP
-    send_at_command(b'AT+CNTPCID=1')  # Set context ID for NTP
-    send_at_command(b'AT+CNTP="pool.ntp.org"')  # Set NTP server
-    send_at_command(b'AT+CNTP')  # Start NTP synchronization
+def set_time_zone():
+    # Enable automatic time zone update
+    send_at_command(b'AT+CTZU=1')
+
+    # Set the time zone for India (IST)
+    send_at_command(b'AT+CTZU=2,198,0,0')
+
+    # Restart NTP synchronization to apply the changes
+    send_at_command(b'AT+CNTP')
+
     time.sleep(10)  # Wait for NTP synchronization to complete
 
     # Read and print the current time (optional)
@@ -23,4 +28,4 @@ def set_time_using_ntp():
     print("Current Time:", current_time_response)
 
 if __name__ == '__main__':
-    set_time_using_ntp()
+    set_time_zone()
