@@ -1,45 +1,55 @@
 from machine import UART
 import time
+import utime
 
 uart = UART(2, baudrate=9600, tx=33, rx=25)
 
+Setup_at_commands = [
+    ("Sending AT command", b'AT'),
+    ("Sending command for SIM card check", b'AT+CPIN?'),
+    ("Sending command for Signal Quality", b'AT+CSQ'),
+    ("Sending command for Network Registration", b'AT+CREG?'),
+    ("Registering the Network", b'AT+CREG=1'),
+    ("Network Registering status", b'AT+CGREG?'),
+    ("Registering the Network (CGREG)", b'AT+CGREG=1'),
+    ("CHECK UE INFORMATION", b'AT+CPSI?'),
+    ("Setting Up APN", b'AT+CGDCONT=1,"IP","airtelgprs"'),
+    ("Registering the Network (CGACT)", b'AT+CGACT=1,1'),
+    ("Get time",b'AT+CCLK?')]
+
+gprs_commands = [
+    ("Initiating HTTP Service", b'AT+HTTPINIT'),
+    ("SSL Check", b'AT+CCHSTART'),
+    ("Open SSL", b'AT+CCHOPEN'),
+    ("Print IP Address", b'AT+CCHADDR'),
+    ("Sending URL", b'AT+HTTPPARA="URL","http://www.linkedin.com/"'),
+    ("Action of HTTP", b'AT+HTTPACTION=0'),
+    ("Read the Head of HTTP response", b'AT+HTTPHEAD'),
+    ("Read and print the HTTP response", b'AT+HTTPREAD?')]
+
+def get_time():
+    current_time = utime.time()
+    formatted_time = utime.localtime(current_time)
+    print("Current Time:", formatted_time)
+    return
+
 def send_at_command(command):
     uart.write(command + b'\r\n')
-    time.sleep(1)  # Wait for the command to be sent
-    response = uart.read()
-    print("Response: ", response.decode('utf-8'))
+    time.sleep(1)
+    response = b''
+    while uart.any():
+        response += uart.read(1)
+    return response.decode('utf-8')
 
-def Lte_setup():
-    print("Sending AT command..."); send_at_command(b'AT')
-    print("Sending command for SIM card check..."); send_at_command(b'AT+CPIN?')
-    print("Sending command for Signal Quality..."); send_at_command(b'AT+CSQ')
-    print("Sending command for Network Registration..."); send_at_command(b'AT+CREG?')
-    print("Registering the Network..."); send_at_command(b'AT+CREG=1') 
-    print("Network Registering status ..."); send_at_command(b'AT+CGREG?')
-    print("Registering the Network..."); send_at_command(b'AT+CREG=1')
-    print("CHECK UE INFORMATION..."); send_at_command(b'AT+CPSI?') 
-    print("Setting Up APN ..."); send_at_command(b'AT+CGDCONT=1,"IP","airtelgprs"')
-    print("Registering the Network..."); send_at_command(b'AT+CGACT=1,1')
-    print("Display IP..."); send_at_command(b'AT+CIPSRIP=1')
-    print("Registering the Network..."); send_at_command(b'AT+CGACT=1,1')
-    
-    print("Initial setup done...")
-    
-def set_gprs():
-    print("Initiating HTTP Service..."); send_at_command(b'AT+HTTPINIT')
-    print("SSL Check..."); send_at_command(b'AT+HTTPSSL?')
-    print("Sending URL..."); send_at_command(b'AT+HTTPPARA="URL",https://WWW.GOOGLE.COM/')
-    time.sleep(5) 
-    print("Action of HTTP..."); send_at_command(b'AT+HTTPACTION=0')
-    print("Read the Head of HTTP response..."); send_at_command(b'AT+HTTPHEAD')  # Read the Head of HTTP response
-    print("Read and print the HTTP response..."); send_at_command(b'AT+HTTPREAD?')  # Read and print the HTTP response
-    print("Close the HTTP connection..."); send_at_command(b'AT+HTTPTERM')
-    print("GPRS SETUP DONE...")
-    
+def run_command(commands):
+    for label, command in commands:
+        print(f"Command sent: {label}...")
+        res = send_at_command(command)
+        print("Response:", res)
+    print("Setup done...")
+    time.sleep(3)
+
 if __name__ == '__main__':
-    Lte_setup()
-    while 1:
-        set_gprs()
-
-        
-
+    run_command(Setup_at_commands)
+    run_command(gprs_commands)
+    run_command(gprs_commands)
